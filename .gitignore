@@ -1,0 +1,15 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
+.vscode/
+
+# Large assets (do not push)
+*.pt
+*.mp4
+*_motion_analyzed*.mp4
+
+# (Optional) the duplicated folder you have
+1/
