@@ -1,52 +1,52 @@
 ```md
 # Basketball Shooting Motion Analyzer (YOLOv8 Pose)
 
-A lightweight, video-based basketball shooting form analyzer.  
-Given a single shooting clip, the pipeline runs **YOLOv8 Pose** to extract body keypoints frame-by-frame, segments the shot into phases, computes interpretable motion metrics, and outputs:
-
-- a **final score (0–100)**
-- **main issues** (with evidence + coaching tips)
-- an **annotated output video**
-- structured **JSON/TXT reports**
+A lightweight, video-based tool that analyzes basketball shooting form from a single clip. It uses **YOLOv8 Pose** to extract body keypoints frame-by-frame, segments the motion into phases, computes interpretable metrics, and generates a score, diagnostics, and an annotated output video.
 
 ---
 
-## Demo (What you get)
-After running on a short clip, the system generates:
+## Features
 
-- `*_motion_analyzed.mp4`: overlayed skeleton + progress + final score screen
-- `*_report.json`: machine-readable result
-- `*_report.txt`: human-readable summary
-
-Example (from a sample run):
-
-- **Score:** 81 / 100  
-- **Main issues:** elbow alignment during loading, limited vertical lift  
-- **Metrics:** knee minimum angle, elbow peak angle, alignment ratios, jump pixels, phase boundaries
+- **Pose-based analysis** using pretrained **YOLOv8 Pose** weights
+- **Shot phase segmentation** (e.g., setup → loading → release → follow-through)
+- **Interpretable metrics** (joint angles, alignment ratios, vertical displacement proxies)
+- **Final score (0–100)** with **main issues + evidence + coaching tips**
+- **Outputs**
+  - Annotated video: `*_motion_analyzed.mp4`
+  - Machine-readable report: `*_report.json`
+  - Human-readable report: `*_report.txt`
 
 ---
 
-## How it works (Approach)
-1. **Pose estimation (per frame)**  
-   Uses **Ultralytics YOLOv8 Pose** pretrained weights to infer human keypoints.
+## Example Output
 
-2. **(Optional) ball detection**  
-   A YOLOv8 detection model can be used to detect the basketball (e.g., “sports ball” class) to help locate release-related moments.
+After running on a short clip, you will typically see:
 
-3. **Phase segmentation**  
-   Converts the keypoint time series into phases such as:
-   `setup → loading → release → follow-through`
-
-4. **Metrics & scoring**  
-   Computes phase-aware, interpretable proxies (angles, relative alignments, vertical displacement).  
-   These metrics are mapped to:
-   - a **final score**
-   - **issue flags** (problem + evidence + suggestion)
+- Overall Motion Score: `82 / 100`
+- Main issues identified: e.g., `Incomplete follow-through`
+- Key metrics: phase scores, knee/arm angles, follow-through angles, etc.
 
 ---
 
-## Repository layout (suggested)
-(ASCII-only tree to avoid LaTeX/Unicode issues)
+## Method Overview
+
+1. **Pose Estimation**  
+   Run YOLOv8 Pose on each frame to obtain 2D body keypoints.
+
+2. **Motion Sequence Construction**  
+   Convert per-frame keypoints into a time series and smooth/validate when needed.
+
+3. **Phase Segmentation**  
+   Partition the shot into phases such as setup, loading, release, and follow-through.
+
+4. **Metric Computation + Scoring**  
+   Compute phase-aware, interpretable proxies (angles and alignments) and map them to:
+   - a final score (0–100)
+   - issue flags with evidence and coaching suggestions
+
+---
+
+## Repository Layout
 
 ```
 
@@ -54,31 +54,45 @@ shooting-motion-analyzer/
 |-- main.py
 |-- README.md
 |-- requirements.txt
-|-- analysis/
-|   |-- **init**.py
-|   |-- analyzer.py
-|   `-- renderer.py |-- weights/                # optional: store local .pt here |   |-- yolov8l-pose.pt |   |-- yolov8m-pose.pt |   `-- yolov8x-pose.pt
-`-- videos/     |-- example.mp4
-    `-- example_motion_analyzed.mp4
+|-- sho_report.json
+|-- sho_report.txt
+|-- yolov8l-pose.pt
+|-- yolov8m-pose.pt
+|-- yolov8x-pose.pt
+|-- yolov8n-pose.pt
+|-- yolov8n.pt
+|-- yolov8s.pt
+|-- yolov8x.pt
+|-- example.mp4
+`-- example_motion_analyzed.mp4
 
 ````
 
-> Notes  
-> - `main.py` is the CLI entry.  
-> - `analysis/` contains the core pipeline (pose → phases → metrics → score) and visualization/overlay logic.  
-> - You can keep model weights in the project folder (or let Ultralytics download them automatically, depending on your setup).
+> You can optionally place weights and videos into `weights/` and `videos/` folders, but the demo setup also works when everything is in one directory.
 
 ---
 
 ## Installation
-### 1) Create environment (recommended)
+
+### 1) Create a virtual environment (recommended)
+
 ```bash
 python -m venv .venv
-# Windows:
-.venv\Scripts\activate
-# macOS/Linux:
-source .venv/bin/activate
 ````
+
+Activate it:
+
+* Windows:
+
+```bash
+.venv\Scripts\activate
+```
+
+* macOS/Linux:
+
+```bash
+source .venv/bin/activate
+```
 
 ### 2) Install dependencies
 
@@ -88,9 +102,9 @@ pip install -r requirements.txt
 
 ---
 
-## Quickstart (Run)
+## Usage
 
-Put your input video (e.g., `.mp4`) in the project folder (or the configured `videos/` directory), then run:
+Place your `.mp4` video in the project folder, then run:
 
 ```bash
 python main.py
@@ -98,65 +112,59 @@ python main.py
 
 The CLI will:
 
-1. list available videos
-2. ask you to choose a **pose model size** (m / l / x)
-3. process the clip and write outputs
+* list available videos (excluding previously generated `*_motion_analyzed*` files)
+* prompt you to select a pose model size (m / l / x)
+* process the video and save outputs
 
 ---
 
-## Output format
+## Output Files
 
-### JSON report (example fields)
+* `*_motion_analyzed.mp4`
+  Video with pose overlay, analysis progress, and final score screen.
 
-* `ok`: run status
-* `video`: input filename
-* `output_video`: output filename
-* `score`: final score (0–100)
-* `issues`: list of `{part, problem, evidence, suggestion}`
-* `metrics`: computed key metrics + `phases`
+* `*_report.json`
+  Structured results including score, issues (problem/evidence/suggestion), metrics, and phase boundaries.
 
-### TXT report
-
-A readable summary with the same score/issues/metrics.
+* `*_report.txt`
+  A readable summary of the same results.
 
 ---
 
-## Evaluation philosophy
+## Evaluation Style
 
-This project is **explainable, metric-driven evaluation** (not dataset-level benchmarking like mAP).
-Each diagnosis is backed by specific metric values (“evidence”), so users can trace feedback to measurable motion properties.
-
----
-
-## Tips for best results
-
-* Use a **single shooter** in frame
-* Keep the camera relatively stable
-* Ensure the full upper body is visible during release/follow-through
-* Higher-resolution clips generally improve keypoint stability
+This project uses an **explainable, metric-driven evaluation** (not dataset-level benchmarks like mAP).
+Each detected issue is justified by specific metric values recorded in the report, making the feedback traceable and reproducible.
 
 ---
 
-## Limitations
+## Tips for Best Results
 
-* Heuristic scoring thresholds may need calibration for different camera angles / player styles.
-* Ball visibility, occlusions, and multiple people can reduce reliability.
-* Release moment estimation may be imperfect if the ball is not detected clearly.
+* Keep the camera stable and the shooter fully visible (especially arms during release/follow-through)
+* Avoid multiple people in frame
+* Higher resolution and better lighting improve keypoint stability
 
 ---
 
-## Future work
+## Known Limitations
 
-* More robust ball-release detection (trajectory + contact)
-* Multi-person filtering (track the shooter consistently)
-* Data-driven threshold tuning and per-user baseline comparison
-* More detailed shot-type support (set shot vs jump shot vs step-back)
+* Heuristic thresholds may vary with camera angle and personal shooting styles
+* Occlusions (ball/hand/arm) can degrade keypoint quality
+* Ball release estimation may be unreliable if the ball is not consistently visible
+
+---
+
+## Future Work
+
+* More robust release detection using ball tracking + hand proximity
+* Multi-person tracking to lock onto the shooter
+* Data-driven calibration of scoring thresholds across viewpoints and players
 
 ---
 
 ## Acknowledgements
 
-Built on top of **Ultralytics YOLOv8** for pose estimation and **OpenCV** for video processing.
+Built with **Ultralytics YOLOv8** and **OpenCV**.
 
 ```
 ```
