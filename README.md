@@ -1,4 +1,4 @@
-```md
+
 # Basketball Shooting Motion Analyzer (YOLOv8 Pose)
 
 A lightweight, video-based tool that analyzes basketball shooting form from a single clip. It uses **YOLOv8 Pose** to extract body keypoints frame-by-frame, segments the motion into phases, computes interpretable metrics, and generates a score, diagnostics, and an annotated output video.
@@ -7,48 +7,16 @@ A lightweight, video-based tool that analyzes basketball shooting form from a si
 
 ## Features
 
-- **Pose-based analysis** using pretrained **YOLOv8 Pose** weights
-- **Shot phase segmentation** (e.g., setup → loading → release → follow-through)
-- **Interpretable metrics** (joint angles, alignment ratios, vertical displacement proxies)
-- **Final score (0–100)** with **main issues + evidence + coaching tips**
-- **Outputs**
-  - Annotated video: `*_motion_analyzed.mp4`
-  - Machine-readable report: `*_report.json`
-  - Human-readable report: `*_report.txt`
+This project performs pose-based shooting analysis using pretrained YOLOv8 Pose weights. It segments each shot into phases (e.g., setup → loading → release → follow-through), computes interpretable motion metrics (joint angles, alignment ratios, and vertical displacement proxies), and produces a final score (0–100) together with issue diagnostics, evidence, and coaching tips. For outputs, it generates an annotated video named `*_motion_analyzed.mp4`, as well as a machine-readable report `*_report.json` and a human-readable report `*_report.txt`.
 
 ---
 
 ## Example Output
 
-After running on a short clip, you will typically see:
-
-- Overall Motion Score: `82 / 100`
-- Main issues identified: e.g., `Incomplete follow-through`
-- Key metrics: phase scores, knee/arm angles, follow-through angles, etc.
+After running on a short clip, you will typically see an overall motion score (for example, `82 / 100`) and a short list of main issues identified (for example, `Incomplete follow-through`). The report also includes key metrics such as phase scores, knee/arm angles, and follow-through angles.
 
 ---
 
-## Method Overview
-
-1. **Pose Estimation**  
-   Run YOLOv8 Pose on each frame to obtain 2D body keypoints.
-
-2. **Motion Sequence Construction**  
-   Convert per-frame keypoints into a time series and smooth/validate when needed.
-
-3. **Phase Segmentation**  
-   Partition the shot into phases such as setup, loading, release, and follow-through.
-
-4. **Metric Computation + Scoring**  
-   Compute phase-aware, interpretable proxies (angles and alignments) and map them to:
-   - a final score (0–100)
-   - issue flags with evidence and coaching suggestions
-
----
-
-## Repository Layout
-
-```
 
 shooting-motion-analyzer/
 |-- main.py
